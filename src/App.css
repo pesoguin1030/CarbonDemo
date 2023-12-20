@@ -1,6 +1,84 @@
 .App {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
   text-align: center;
+  padding: 20px; /* 添加內邊距 */
 }
+
+h1 {
+  font-size: 2rem; /* 調整標題字體大小 */
+  margin-bottom: 20px; /* 添加底部間距 */
+}
+
+p {
+  margin: 10px 0; /* 添加上下間距 */
+}
+
+input {
+  padding: 10px; /* 添加輸入框內邊距 */
+  margin-right: 10px; /* 添加右邊間距 */
+  /* width: 100%; */
+  box-sizing: border-box;
+}
+td {
+  vertical-align: middle;
+}
+/* 將key設置為右對齊 */
+td.key {
+  text-align: right;
+}
+
+/* 將value設置為左對齊 */
+td.value {
+  text-align: left;
+}
+
+table{
+  vertical-align: center;
+  justify-content: center;
+}
+
+button {
+  background-color: #61dafb;
+  color: #282c34;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  margin-top: 10px; /* 添加上方間距 */
+}
+
+button:hover {
+  background-color: #45a8f1;
+}
+
+/* 新增一個容器，調整輸入框和按鈕的排列 */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 添加新的類別，用於處理手機螢幕的樣式 */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+  p {
+    font-size: 1rem;
+  }
+  button {
+    font-size: 0.9rem;
+  }
+}
+
 
 .App-logo {
   height: 40vmin;

@@ -5,13 +5,14 @@ import * as ExternalApi from "./api/api.js";
 var address = "0x921db87f8e0a889e8f1c245ebae96b179be12605";
 var token = "U2FsdGVkX1/gbFPx27PaO3n8LhUAaVV/G0uN+ujhiqQ=";
 var user_phone = "0900000000";
-var amount = 100;
+var amount = 0;
 var party_phone = "";
 
 function App() {
   const [carbonPoint, setCarbonPoint] = useState(0);
   const [userPhone, setUserPhone] = useState("");
   const [userAddress, setUserAddress] = useState("");
+  const [addpoint,setAddpoint] = useState("");
   // const [tempPointResult, setTempPointResult] = useState("");
   useEffect(
     function () {
@@ -34,13 +35,28 @@ function App() {
   };
   const getExtrnalConsumer = async () => {
     try {
-      alert(userPhone);
+      // alert(userPhone);
       const result = await ExternalApi.getExtrnalConsumer(userPhone);
       console.log("Debug: getExtrnalConsumer=", result.message, address);
       setUserAddress(result.message.address);
       setCarbonPoint(0);
     } catch (error) {
       console.log("Error: getExtrnalConsumer=", error);
+    }
+  };
+
+  const setAmountToinput = async () => {
+    try {
+      // alert(userPhone);
+      // const result = await ExternalApi.getExtrnalConsumer(userPhone);
+      // console.log("Debug: getExtrnalConsumer=", result.message, address);
+      // setUserAddress(result.message.address);
+      // setCarbonPoint(0);
+      alert(addpoint);
+      amount = parseFloat(addpoint); // 將字串轉換為浮點數
+      console.log(amount);
+    } catch (error) {
+      console.log("Error: amount", error);
     }
   };
   // const getTotalAmount = () => {
@@ -85,7 +101,7 @@ function App() {
       );
       console.log("Debug: transferFrom=", result.message);
       getCurrentPoints();
-      if (result.message == "Successfully transfer carbon points") {
+      if (result.message === "Successfully transfer carbon points") {
         alert("您已成功取得碳權點數！");
       } else {
         alert("碳權點數將轉為暫存點數");
@@ -98,38 +114,91 @@ function App() {
     setUserPhone(event.target.value);
   };
 
-  return (
-    <div className="App">
-      <h1>台銀模擬應用</h1>
-      <div>
-        <h3>使用者登入資訊：</h3>
-        <p>台銀於碳權平台申請之token:</p>
-        <p>{token}</p>
-        <p>
-          手機：
-          <input
-            type="text"
-            placeholder="請輸入使用者手機號"
-            value={userPhone}
-            onChange={handlePhoneChange}
-          />
-          <button onClick={getExtrnalConsumer}>更新</button>
-        </p>
-        <p>您的地址是：</p>
-        {userAddress}
-        <p>
-          目前擁有的碳權點數：
-          {carbonPoint ? carbonPoint : 0} 點
-        </p>
-        {/* <p>
-          目前暫存的碳權點數：
-          {getTotalAmount()} 點
-        </p> */}
-      </div>
+  const handlePointsChange = (event) => {
+    const inputAmount = event.target.value;
+    setAddpoint(inputAmount);
+    try {
+      amount = parseFloat(inputAmount); // 將字串轉換為浮點數
+      console.log(amount);
+    } catch (error) {
+      console.log("Error: amount", error);
+    }
+  };
 
-      <button onClick={transferFrom}>付款</button>
-    </div>
-  );
+  const ecpay = async () => {
+    try {
+       
+      // 在這裡添加跳轉至 localhost:3000 的程式碼
+      window.location.href = "http://localhost:3002"; // 更換成您需要的 URL
+  
+    } catch (error) {
+      console.log("Error: redirect=", error);
+    }
+  };
+
+return (
+  <div className="App container mt-5">
+    <h1 className="mb-4">台銀模擬應用</h1>
+    <table className="table">
+      <tbody>
+        <tr>
+          <td class="key">台銀於碳權平台申請之token：</td>
+          <td class="value">{token}</td>
+        </tr>
+        <p></p>
+        <tr> 
+          <td></td>
+          <td class="value">⇩ 以下為使用者資訊 ⇩ </td>
+        </tr>
+        <tr>
+          <td class="key">手機：</td>
+          <td class="value">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="請輸入使用者手機號"
+              value={userPhone}
+              onChange={handlePhoneChange}
+            />
+            <button onClick={getExtrnalConsumer}>更新</button>
+          </td>
+        </tr>
+        <tr>
+          <td class="key">你的地址是：</td>
+          <td class="value">{userAddress}</td>
+        </tr>
+        <tr>
+          <td class="key">新增的點數：</td>
+          <td class="value">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="請輸入要新增的點數"
+              value={addpoint}
+              onChange={handlePointsChange}
+            />
+            <button className="btn btn-primary" onClick={transferFrom}>
+              付款
+            </button>
+            {/* <button className="btn btn-primary" onClick={ecpay} style={{ marginLeft: '10px' }}>
+              綠界支付
+            </button> */}
+          </td>
+        </tr>
+        <tr>
+          <td class="key">目前擁有的碳權點數：</td>
+          <td class="value">{carbonPoint ? carbonPoint : 0} 點</td>
+        </tr>
+      </tbody>
+    </table>
+    {/* <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <button className="btn btn-primary" onClick={ecpay}>
+        綠界付款
+      </button>
+    </div> */}
+  </div>
+    
+);
 }
 
 export default App;
