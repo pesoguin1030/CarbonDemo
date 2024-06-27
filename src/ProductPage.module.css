@@ -1,0 +1,35 @@
+.table {
+  width: 50%;
+  margin: auto;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.th, .td {
+  border: 1px solid black;
+  padding: 8px;
+  text-align: center;
+}
+
+.th {
+  background-color: #f2f2f2;
+}
+
+.input {
+  width: 60px;
+}
+
+.total {
+  font-weight: bold;
+}
+
+.total_row td {
+  border-top: 2px solid black;
+}
+
+.total_amount {
+  font-size: 1.2em;
+  color: #d9534f;
+  text-align: right;
+  padding-right: 16px;
+}
