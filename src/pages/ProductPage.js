@@ -16,13 +16,15 @@ const ProductPage = () => {
   const [userPhone, setUserPhone] = useState("");
   const [userAddress, setUserAddress] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
-  const [partyPhone, setPartyPhone] = useState("");
-  const [tokenId, setTokenId] = useState("");
   const [tokenOptions, setTokenOptions] = useState([]); // Initialize as an empty array
+  const [tokenId, setTokenId] = useState("");
+  const [partyId, setPartyId] = useState("");
+  const [partyOptions, setPartyOptions] = useState(); // Initialize as an empty array
   //let [tokens  , setTokens] = useState([]); // Initialize as an empty array
   useEffect(() => {
     fetchTokenIds(); // Fetch token IDs when the component mounts
-  }, []);
+    fetchPartyIds();
+  }, [],[]);
 
   const calculateTotal = () => {
     const prices = [90, 90, 90, 95, 95, 100, 95, 100, 100, 95, 110, 110, 115, 95, 125, 10];
@@ -68,17 +70,40 @@ const ProductPage = () => {
       }
       var tokens = response.message.tokenIds;
       
-      console.log("Debug: fetchTokenIds tokens=", tokens); // Debug log
+      //console.log("Debug: fetchTokenIds tokens=", tokens); // Debug log
       if (!Array.isArray(tokens)) {
         tokens = tokens.replace(/[\[\]]/g, '').split(',');
       }
       //setTokenOptions([0, 1, 2, 3]);
       setTokenOptions(tokens);
-      console.log("Debug: tokenOptions=", tokenOptions); // Debug log
+      //console.log("Debug: tokenOptions=", tokenOptions); // Debug log
     } catch (error) {
       console.log("Error: fetchTokenIds=", error);
     }
   };
+
+  const fetchPartyIds = async () => {
+    const approved = 1;
+    try {
+        const response = await ExternalApi.getExternalParty(approved);
+        var parties = response.message;
+        // console.log(parties);
+        
+        // console.log("Debug: fetchPartyIds tokens=", parties); // Debug log
+        setPartyOptions(parties);
+        console.log("Debug: partyOptions=", partyOptions); // Debug log
+        
+        // 濾出所有enter_id並附加到一個陣列
+      const enterIds = parties.map(party => party.enter_id);
+      const uniqueEnterIds = [...new Set(enterIds)];
+      uniqueEnterIds.sort((a, b) => a - b);
+      console.log("Filtered enter_ids:", enterIds);
+      setPartyOptions(uniqueEnterIds);
+    } catch (error) {
+        console.log("Error: fetchPartyIds=", error);
+    }
+};
+
 
   const transferFrom = async () => {
     try {
@@ -89,10 +114,16 @@ const ProductPage = () => {
       }
       console.log(userPhone, amount, token);
       alert("碳權點數轉移中，請稍候");
-      const result = await ExternalApi.transferFrom(token, userPhone, amount, party_phone, tokenId);
+      const result = await ExternalApi.transferFrom(token, userPhone, amount, partyId, tokenId);
       console.log("Debug: transferFrom=", result.message);
       getCurrentPoints();
       if (result.message === "Successfully transfer carbon points") {
+        if (partyId) {
+          alert("已成功轉移給第三方機構！");
+          window.location.reload(); // Refresh the page after successful purchase
+          return;
+        }
+        
         alert("您已成功取得碳權點數！");
         window.location.reload(); // Refresh the page after successful purchase
       } else {
@@ -107,8 +138,8 @@ const ProductPage = () => {
     setUserPhone(event.target.value);
   };
 
-  const handlePartyPhoneChange = (event) => {
-    setPartyPhone(event.target.value);
+  const handlePartyIdChange = (event) => {
+    setPartyId(event.target.value);
   };
 
   const handleTokenIdChange = (event) => {
@@ -172,12 +203,20 @@ const ProductPage = () => {
       </table>
       <Container className="mt-5">
         <Row>
-          <Col xs={4}>
+          <Col xs={3}>
             <h4>轉移點數給消費者</h4>
           </Col>
-          <Col>
+          <Col >
           <InputGroup className="mb-3">
-          <Form.Control aria-label="phonenumber" placeholder="請輸入使用者手機號" value={userPhone} onChange={handlePhoneChange} />
+              <Form.Control aria-label="phonenumber" placeholder="請輸入使用者手機號碼" value={userPhone} onChange={handlePhoneChange} />
+              <Form.Select aria-label="party" value={partyId} onChange={handlePartyIdChange}>
+            <option value="">請選擇要捐贈的第三方機構</option>
+            {Array.isArray(partyOptions)&&partyOptions.map((party) => (
+              <option key={party} value={party}>
+                {party}
+              </option>
+            ))}
+          </Form.Select>    
           <Form.Select aria-label="token" value={tokenId} onChange={handleTokenIdChange}>
             <option value="" disabled>請選擇Token ID</option>
             {tokenOptions.map((id) => (

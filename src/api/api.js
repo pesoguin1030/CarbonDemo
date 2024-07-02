@@ -1,8 +1,12 @@
+import { party_phone } from "../global_variable";
 import request from "./request";
 
 //轉移碳權點數
-export async function transferFrom(token, user_phone, amount, party_phone, tokenId) {
+export async function transferFrom(token, user_phone, amount, partyOptions, tokenId) {
   try {
+    const { party_phone } = await request.post(`/carbonExternal/external/partyData`,
+      { partyOptions });
+
     const { data } = await request.post(
       `/carbonExternal/external/transferFrom`,
       {
@@ -63,22 +67,19 @@ export async function getCurrentPoints(address, token) {
     throw new Error(errorMessage);
   }
 }
-
-// //查看捐贈機構
-// export async function getExternalParty(approved) {
-//   try {
-//     const { data } = await request.get(
-//       `/carbonExternal/external/getExternalParty`,
-//       {
-//         params: {
-//           approved,
-//         },
-//       }
-//     );
-//     return data;
-//   } catch (error) {
-//     const errorMessage = `getExternalParty error=${error.message}`;
-//     console.log(errorMessage);
-//     throw new Error(errorMessage);
-//   }
-// }
+//查看捐贈機構
+export async function getExternalParty(approved) {
+  try {
+    const { data } = await request.post(
+      `/carbonExternal/external/getExternalParty`,
+      {
+        approved
+      }
+    );
+    return data;
+  } catch (error) {
+    const errorMessage = `getExternalParty error=${error.message}`;
+    console.log(errorMessage);
+    throw new Error(errorMessage);
+  }
+}
