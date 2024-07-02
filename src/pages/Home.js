@@ -43,7 +43,8 @@ const Home = () => {
     const transferFrom = async () => {
       try {
         alert("碳權點數轉移中，請稍候");
-        const result = await ExternalApi.transferFrom(token, userPhone, amount, party_phone);
+        const tokenId = 23;
+        const result = await ExternalApi.transferFrom(token, userPhone, amount, party_phone,tokenId);
         console.log("Debug: transferFrom=", result.message);
         getCurrentPoints();
           console.log(amount);

@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import * as ExternalApi from "../api/api.js";
 import styles from "../ProductPage.module.css";
-import { address, token, user_phone, party_phone } from '../global_variable.js';
+import { address, token, user_phone, party_phone, address_enterprise } from '../global_variable.js';
+import {
+  InputGroup,
+  Form,
+  FormGroup,
+  Container, 
+  Row,
+  Col,
+} from "react-bootstrap";
 
 const ProductPage = () => {
   const [carbonPoint, setCarbonPoint] = useState(0);
@@ -9,15 +17,15 @@ const ProductPage = () => {
   const [userAddress, setUserAddress] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
   const [partyPhone, setPartyPhone] = useState("");
-
+  const [tokenId, setTokenId] = useState("");
+  const [tokenOptions, setTokenOptions] = useState([]); // Initialize as an empty array
+  //let [tokens  , setTokens] = useState([]); // Initialize as an empty array
   useEffect(() => {
-    if (userAddress) {
-      getCurrentPoints();
-    }
-  }, [userAddress]);
+    fetchTokenIds(); // Fetch token IDs when the component mounts
+  }, []);
 
   const calculateTotal = () => {
-    const prices = [90, 90, 90, 95, 95, 100, 95, 100, 100, 95, 110, 110, 115, 95, 125, 125];
+    const prices = [90, 90, 90, 95, 95, 100, 95, 100, 100, 95, 110, 110, 115, 95, 125, 10];
     let total = 0;
     const quantities = document.getElementsByClassName(styles.input);
     for (let i = 0; i < quantities.length; i++) {
@@ -51,16 +59,42 @@ const ProductPage = () => {
     }
   };
 
+  const fetchTokenIds = async () => {
+    try {
+      const response = await ExternalApi.getCurrentPointsDetail(address_enterprise, token);
+      if (response.code !== 200) {
+        alert("請帶入有效的address以及token");
+        return;
+      }
+      var tokens = response.message.tokenIds;
+      
+      console.log("Debug: fetchTokenIds tokens=", tokens); // Debug log
+      if (!Array.isArray(tokens)) {
+        tokens = tokens.replace(/[\[\]]/g, '').split(',');
+      }
+      //setTokenOptions([0, 1, 2, 3]);
+      setTokenOptions(tokens);
+      console.log("Debug: tokenOptions=", tokenOptions); // Debug log
+    } catch (error) {
+      console.log("Error: fetchTokenIds=", error);
+    }
+  };
+
   const transferFrom = async () => {
     try {
-        const amount = Math.floor(totalAmount * 0.1); // 轉出的點數是總金額的10%
-        console.log(amount)
+      const amount = Math.floor(totalAmount * 0.1); // 轉出的點數是總金額的10%
+      if (!userPhone || !tokenId) {
+        alert("請輸入有效的手機號碼和選擇tokenId");
+        return;
+      }
+      console.log(userPhone, amount, token);
       alert("碳權點數轉移中，請稍候");
-      const result = await ExternalApi.transferFrom(token, userPhone, amount, party_phone);
+      const result = await ExternalApi.transferFrom(token, userPhone, amount, party_phone, tokenId);
       console.log("Debug: transferFrom=", result.message);
       getCurrentPoints();
       if (result.message === "Successfully transfer carbon points") {
         alert("您已成功取得碳權點數！");
+        window.location.reload(); // Refresh the page after successful purchase
       } else {
         alert("碳權點數將轉為暫存點數");
       }
@@ -77,42 +111,13 @@ const ProductPage = () => {
     setPartyPhone(event.target.value);
   };
 
+  const handleTokenIdChange = (event) => {
+    setTokenId(event.target.value);
+  };
+
   return (
     <div className="App container mt-5">
-      <h1 className="mb-4">便當店模擬應用</h1>
-      <table className="table">
-        <tbody>
-          <tr>
-            <td className="key">便當店於碳權平台申請之token：</td>
-            <td className="value">{token}</td>
-          </tr>
-          <tr> 
-            <td></td>
-            <td className="value">⇩ 以下為使用者資訊 ⇩ </td>
-          </tr>
-          <tr>
-            <td className="key">手機：</td>
-            <td className="value">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="請輸入使用者手機號"
-                value={userPhone}
-                onChange={handlePhoneChange}
-              />
-              <button onClick={getExtrnalConsumer}>更新</button>
-            </td>
-          </tr>
-          <tr>
-            <td className="key">你的地址是：</td>
-            <td className="value">{userAddress}</td>
-          </tr>
-          <tr>
-            <td className="key">目前擁有的碳權點數：</td>
-            <td className="value">{carbonPoint ? carbonPoint : 0} 點</td>
-          </tr>
-        </tbody>
-      </table>
+      <h1>便當店模擬應用</h1>
       <h2 style={{ textAlign: "center" }}>商品清單</h2>
       <table className={styles.table}>
         <thead>
@@ -139,7 +144,7 @@ const ProductPage = () => {
             ["鐵道排骨飯包", 115],
             ["飄香滷雞腿飯包", 95],
             ["香酥雞腿飯包", 125],
-            ["海陸雙拼飯包", 125],
+            ["海陸雙拼飯包", 10],
           ].map((item, index) => (
             <tr key={index}>
               <td className={styles.td}>{item[0]}</td>
@@ -149,8 +154,8 @@ const ProductPage = () => {
                   type="number"
                   className={styles.input}
                   onInput={calculateTotal}
-                          defaultValue="0"
-                          min="0"
+                  defaultValue="0"
+                  min="0"
                 />
               </td>
             </tr>
@@ -159,21 +164,34 @@ const ProductPage = () => {
             <td colSpan="2">總金額</td>
             <td id="totalAmount" className={styles.totalAmount}>{totalAmount}</td>
           </tr>
+          <tr className={`${styles.total}`}>
+            <td colSpan="2">須轉移的點數</td>
+            <td id="totalAmount" className={styles.totalPoint}>{Math.floor(totalAmount * 0.1)}</td>
+          </tr>
         </tbody>
       </table>
-      <div className="mt-4">
-        <h4>轉移點數給另一位用戶</h4>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="請輸入接收者手機號"
-          value={partyPhone}
-          onChange={handlePartyPhoneChange}
-        />
-        <button className="btn btn-primary mt-2" onClick={transferFrom}>
-          轉移 {Math.floor(totalAmount * 0.1)} 點 碳權點數
-        </button>
-      </div>
+      <Container className="mt-5">
+        <Row>
+          <Col xs={4}>
+            <h4>轉移點數給消費者</h4>
+          </Col>
+          <Col>
+          <InputGroup className="mb-3">
+          <Form.Control aria-label="phonenumber" placeholder="請輸入使用者手機號" value={userPhone} onChange={handlePhoneChange} />
+          <Form.Select aria-label="token" value={tokenId} onChange={handleTokenIdChange}>
+            <option value="" disabled>請選擇Token ID</option>
+            {tokenOptions.map((id) => (
+              <option key={id} value={id}>
+                {id}
+              </option>
+            ))}
+          </Form.Select>
+          <button className="btn btn-primary" onClick={transferFrom}>轉移點數</button>
+          </InputGroup>
+          </Col>
+        </Row>
+
+      </Container>
     </div>
   );
 };

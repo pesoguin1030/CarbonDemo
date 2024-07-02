@@ -1,7 +1,7 @@
 import request from "./request";
 
 //轉移碳權點數
-export async function transferFrom(token, user_phone, amount, party_phone) {
+export async function transferFrom(token, user_phone, amount, party_phone, tokenId) {
   try {
     const { data } = await request.post(
       `/carbonExternal/external/transferFrom`,
@@ -10,6 +10,7 @@ export async function transferFrom(token, user_phone, amount, party_phone) {
         user_phone,
         amount,
         party_phone,
+        tokenId
       }
     );
     return data;
@@ -49,7 +50,7 @@ export async function getExtrnalConsumer(user_phone) {
 export async function getCurrentPoints(address, token) {
   try {
     const { data } = await request.post(
-      `/carbonExternal/external/getCurrentPoints`,
+      `/carbonExternal/external/getCurrentPointsAmount`,
       {
         address,
         token,
