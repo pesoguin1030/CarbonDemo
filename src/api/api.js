@@ -83,3 +83,21 @@ export async function getExternalParty(approved) {
     throw new Error(errorMessage);
   }
 }
+
+//取得碳權點數
+export async function getCurrentPointsDetail(address, token) {
+  try {
+    const { data } = await request.post(
+      `/carbonExternal/external/getCurrentPointsDetail`,
+      {
+        address,
+        token,
+      }
+    );
+    return data;
+  } catch (error) {
+    const errorMessage = `getCurrentPointsDetail error=${error.message}`;
+    console.log(errorMessage);
+    throw new Error(errorMessage);
+  }
+}

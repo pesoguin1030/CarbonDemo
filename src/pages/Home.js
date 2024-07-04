@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import * as ExternalApi from "../api/api.js";
 import "../App.css";
-import { address, token, party_phone } from '../global_variable.js';
+import styles from "../App.css";
+import { address_enterprise,address, token, party_phone } from '../global_variable.js';
 
 const Home = () => {
     const [carbonPoint, setCarbonPoint] = useState(0);
@@ -10,11 +11,16 @@ const Home = () => {
     const [userAddress, setUserAddress] = useState("");
     const [addpoint, setAddpoint] = useState("");
     const [amount, setAmount] = useState(0);
-    const [partyPhone, setPartyPhone] = useState("");
+  const [partyPhone, setPartyPhone] = useState("");
+  const [tokenId, setTokenId] = useState("");
+  const [tokenOptions, setTokenOptions] = useState([]); // Initialize as an empty array
   
     useEffect(() => {
       getCurrentPoints();
-    }, [userAddress]);
+      //let [tokens  , setTokens] = useState([]); // Initialize as an empty array
+
+    fetchTokenIds(); // Fetch token IDs when the component mounts
+    }, [userAddress],[]);
   
     const getCurrentPoints = async () => {
       try {
@@ -39,11 +45,31 @@ const Home = () => {
         console.log("Error: getExtrnalConsumer=", error);
       }
     };
+
+    const fetchTokenIds = async () => {
+      try {
+        const response = await ExternalApi.getCurrentPointsDetail(address_enterprise, token);
+        if (response.code !== 200) {
+          alert("請帶入有效的address以及token");
+          return;
+        }
+        var tokens = response.message.tokenIds;
+        
+        console.log("Debug: fetchTokenIds tokens=", tokens); // Debug log
+        if (!Array.isArray(tokens)) {
+          tokens = tokens.replace(/[\[\]]/g, '').split(',');
+        }
+        //setTokenOptions([0, 1, 2, 3]);
+        setTokenOptions(tokens);
+        console.log("Debug: tokenOptions=", tokenOptions); // Debug log
+      } catch (error) {
+        console.log("Error: fetchTokenIds=", error);
+      }
+    };
   
     const transferFrom = async () => {
       try {
         alert("碳權點數轉移中，請稍候");
-        const tokenId = 23;
         const result = await ExternalApi.transferFrom(token, userPhone, amount, party_phone,tokenId);
         console.log("Debug: transferFrom=", result.message);
         getCurrentPoints();
@@ -60,7 +86,11 @@ const Home = () => {
   
     const handlePhoneChange = (event) => {
       setUserPhone(event.target.value);
-    };
+  };
+  
+  const handleTokenIdChange = (event) => {
+    setTokenId(event.target.value);
+  };
   
     const handlePointsChange = (event) => {
       const inputAmount = event.target.value;
@@ -86,7 +116,7 @@ const Home = () => {
     };
   
     return (
-      <div className="App container mt-5">
+      <div className="App">
         <h1 className="mb-4">便當店模擬應用</h1>
         <table className="table">
           <tbody>
@@ -104,15 +134,15 @@ const Home = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="請輸入使用者手機號"
+                  placeholder="請輸入使用者手機號碼"
                   value={userPhone}
                   onChange={handlePhoneChange}
                 />
-                <button onClick={getExtrnalConsumer}>更新</button>
+                <button className="btn btn-primary" onClick={getExtrnalConsumer}>更新</button>
               </td>
             </tr>
             <tr>
-              <td className="key">你的地址是：</td>
+              <td className="key">消費者的地址是：</td>
               <td className="value">{userAddress}</td>
             </tr>
             <tr>
@@ -125,8 +155,21 @@ const Home = () => {
                   value={addpoint}
                   onChange={handlePointsChange}
                 />
+                 <td className={styles.selectBox}>
+                <select
+          className="form-control"
+          value={tokenId}
+          onChange={handleTokenIdChange}
+        >
+          <option value="">請選擇Token ID</option>
+          {Array.isArray(tokenOptions) && tokenOptions.map((id) => (
+            <option key={id} value={id}>
+              {id}
+            </option>
+          ))}
+        </select></td>
                 <button className="btn btn-primary" onClick={transferFrom}>
-                  付款
+                  轉移點數
                 </button>
               </td>
             </tr>
